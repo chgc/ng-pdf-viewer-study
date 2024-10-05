@@ -1,0 +1,11 @@
+<button (click)="load()">Load</button>
+<button (click)="prevPage()">上一頁</button>
+<span
+  >頁碼：<span id="pageNumber">{{ currentPage() }}</span> /
+  <span id="totalPages">{{ pageNumber() }}</span></span
+>
+<button (click)="nextPage()">下一頁</button>
+<hr />
+<div>
+  <canvas #pdfViewer class="pdf-viewer"></canvas>
+</div>

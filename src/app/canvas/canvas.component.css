@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  height: 90vh;
+}
+
+.pdf-viewer {
+  width: 70%;
+  height: auto;
+  border: 1px solid black;
+}

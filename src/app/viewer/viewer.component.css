@@ -1,0 +1,22 @@
+:host {
+  display: block;
+  height: 90vh;
+  width: 50vw;
+}
+
+.pdf-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+#viewerContainer {
+  position: absolute;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+}
+
+.textLayer {
+  display: none;
+}
