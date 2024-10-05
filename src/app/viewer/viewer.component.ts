@@ -6,6 +6,7 @@ import {
   ElementRef,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import * as pdfjsViewer from 'pdfjs-dist/web/pdf_viewer.mjs';
@@ -27,6 +28,7 @@ export class ViewerComponent {
   pdfLinkService!: pdfjsViewer.PDFLinkService;
   eventBus!: pdfjsViewer.EventBus;
   currentPage = signal(0);
+  totalPages = signal(0);
 
   renderRef = effect(() => {
     const currentPage = this.currentPage();
@@ -65,7 +67,10 @@ export class ViewerComponent {
 
       this.eventBus.on('pagesinit', () => {
         this.pdfViewer.currentScaleValue = 'page-width';
+        this.currentPage.set(this.pdfViewer.currentPageNumber);
+        this.totalPages.set(this.pdfViewer.pagesCount);
       });
+      this.eventBus.on('pagechanging', this.onPageChanging.bind(this));
     });
   }
 
@@ -73,18 +78,14 @@ export class ViewerComponent {
     this.service.getPdf().subscribe({
       next: (pdf) => {
         this.pdfViewer.setDocument(pdf);
-        this.currentPage.set(this.pdfViewer.currentPageNumber);
         this.pdfLinkService.setDocument(pdf, null);
       },
     });
   }
 
-  find() {
-    this.eventBus.dispatch('find', {
-      source: this,
-      type: 'again',
-      query: 'Stack',
-      highlightAll: true,
+  onPageChanging({ pageNumber }: { pageNumber: number }) {
+    untracked(() => {
+      this.currentPage.set(pageNumber);
     });
   }
 
