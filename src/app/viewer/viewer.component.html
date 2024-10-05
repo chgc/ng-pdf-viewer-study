@@ -1,4 +1,13 @@
 <button (click)="load()">Load</button>
+<button (click)="prevPage()">上一頁</button>
+@let pageCount = pdfViewer?.pagesCount ?? 0;
+
+<span>
+  頁碼：<span id="pageNumber">{{ currentPage() }}</span> /
+  <span id="totalPages">{{ pageCount }}</span>
+</span>
+<button (click)="nextPage()">下一頁</button>
+<button (click)="find()">Find</button>
 <hr />
 
 <div class="pdf-wrapper">

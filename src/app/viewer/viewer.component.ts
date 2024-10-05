@@ -1,12 +1,16 @@
 import {
   afterNextRender,
   Component,
+  computed,
+  effect,
   ElementRef,
   inject,
+  signal,
   viewChild,
 } from '@angular/core';
 import * as pdfjsViewer from 'pdfjs-dist/web/pdf_viewer.mjs';
 import { PdfService } from '../pdf.service';
+import { PDFDocumentProxy } from 'pdfjs-dist';
 
 @Component({
   selector: 'app-viewer',
@@ -21,15 +25,24 @@ export class ViewerComponent {
 
   pdfViewer!: pdfjsViewer.PDFViewer;
   pdfLinkService!: pdfjsViewer.PDFLinkService;
+  eventBus!: pdfjsViewer.EventBus;
+  currentPage = signal(0);
+
+  renderRef = effect(() => {
+    const currentPage = this.currentPage();
+    if (currentPage >= 1 && currentPage <= this.pdfViewer.pagesCount) {
+      this.pdfViewer.scrollPageIntoView({ pageNumber: currentPage });
+    }
+  });
 
   constructor() {
     afterNextRender(() => {
-      const eventBus = new pdfjsViewer.EventBus();
+      this.eventBus = new pdfjsViewer.EventBus();
       this.pdfLinkService = new pdfjsViewer.PDFLinkService({
-        eventBus: eventBus,
+        eventBus: this.eventBus,
       });
       const pdfFindController = new pdfjsViewer.PDFFindController({
-        eventBus: eventBus,
+        eventBus: this.eventBus,
         linkService: this.pdfLinkService,
       });
 
@@ -42,7 +55,7 @@ export class ViewerComponent {
 
       this.pdfViewer = new pdfjsViewer.PDFViewer({
         container: this.container()?.nativeElement,
-        eventBus: eventBus,
+        eventBus: this.eventBus,
         linkService: this.pdfLinkService,
         findController: pdfFindController,
         textLayerMode: 0,
@@ -50,7 +63,7 @@ export class ViewerComponent {
 
       this.pdfLinkService.setViewer(this.pdfViewer);
 
-      eventBus.on('pagesinit', () => {
+      this.eventBus.on('pagesinit', () => {
         this.pdfViewer.currentScaleValue = 'page-width';
       });
     });
@@ -60,8 +73,28 @@ export class ViewerComponent {
     this.service.getPdf().subscribe({
       next: (pdf) => {
         this.pdfViewer.setDocument(pdf);
+        this.currentPage.set(this.pdfViewer.currentPageNumber);
         this.pdfLinkService.setDocument(pdf, null);
       },
     });
+  }
+
+  find() {
+    this.eventBus.dispatch('find', {
+      source: this,
+      type: 'again',
+      query: 'Stack',
+      highlightAll: true,
+    });
+  }
+
+  prevPage() {
+    if (this.currentPage() === 1) return;
+    this.currentPage.update((page) => page - 1);
+  }
+
+  nextPage() {
+    if (this.currentPage() >= this.pdfViewer.pagesCount) return;
+    this.currentPage.update((page) => page + 1);
   }
 }
