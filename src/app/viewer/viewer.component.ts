@@ -83,6 +83,17 @@ export class ViewerComponent {
     });
   }
 
+  find() {
+    // only works in textLayerMode: 1 (enable)
+    this.eventBus.dispatch('find', {
+      source: this,
+      type: 'again',
+      query: 'Arrays',
+      highlightAll: true,
+      findPrevious: false,
+    });
+  }
+
   onPageChanging({ pageNumber }: { pageNumber: number }) {
     untracked(() => {
       this.currentPage.set(pageNumber);
